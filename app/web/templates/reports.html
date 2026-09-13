@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% from "_macros.html" import breakdown_bars, timeline_chart %}
+{% block title %}Отчёты — Финансы{% endblock %}
+
+{% macro breakdown_table(breakdown, currency, label) %}
+  {% if breakdown.items %}
+  <div class="table-wrap" style="margin-top:18px">
+    <table>
+      <thead><tr><th>{{ label }}</th><th class="num">Сумма</th><th class="num">Доля</th></tr></thead>
+      <tbody>
+        {% for item in breakdown.items %}
+        <tr>
+          <td>
+            <span class="with-dot" style="--c: {% if item.color_slot is not none %}var(--c{{ item.color_slot }}){% else %}var(--c-none){% endif %}">
+              <span class="dot"></span>{{ item.category_name }}
+            </span>
+          </td>
+          <td class="num">{{ item.total | money(currency) }}</td>
+          <td class="num dim">{{ item.share }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr><td><strong>Итого</strong></td><td class="num"><strong>{{ breakdown.total | money(currency) }}</strong></td><td></td></tr>
+      </tfoot>
+    </table>
+  </div>
+  {% endif %}
+{% endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Отчёты</h1>
+  <p>{{ date_from | rudate }} — {{ date_to | rudate }}</p>
+</div>
+
+<div class="card">
+  <form method="get" action="/reports" class="row">
+    <div class="field field-sm">
+      <label for="date_from">С даты</label>
+      <input id="date_from" type="date" name="date_from" value="{{ date_from.isoformat() }}">
+    </div>
+    <div class="field field-sm">
+      <label for="date_to">По дату</label>
+      <input id="date_to" type="date" name="date_to" value="{{ date_to.isoformat() }}">
+    </div>
+    <div class="field field-sm">
+      <label for="granularity">Шаг динамики</label>
+      <select id="granularity" name="granularity">
+        <option value="day" {% if granularity == 'day' %}selected{% endif %}>По дням</option>
+        <option value="week" {% if granularity == 'week' %}selected{% endif %}>По неделям</option>
+        <option value="month" {% if granularity == 'month' %}selected{% endif %}>По месяцам</option>
+        <option value="year" {% if granularity == 'year' %}selected{% endif %}>По годам</option>
+      </select>
+    </div>
+    <button class="btn" type="submit">Построить</button>
+  </form>
+</div>
+
+<div class="tiles">
+  <div class="tile">
+    <div class="label">Доходы за период</div>
+    <div class="value">{{ summary.income | money(currency) }}</div>
+  </div>
+  <div class="tile">
+    <div class="label">Расходы за период</div>
+    <div class="value">{{ summary.expense | money(currency) }}</div>
+  </div>
+  <div class="tile">
+    <div class="label">Разница</div>
+    <div class="value {{ 'pos' if summary.net >= 0 else 'neg' }}">{{ summary.net | money(currency) }}</div>
+    <div class="sub">{{ summary.transactions_count }} {{ summary.transactions_count | plural("операция", "операции", "операций") }}</div>
+  </div>
+  <div class="tile">
+    <div class="label">Норма сбережений</div>
+    <div class="value">{{ savings_rate }}%</div>
+    <div class="sub">доля дохода, которая осталась</div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:16px">
+  <h2>Динамика доходов и расходов</h2>
+  {{ timeline_chart(timeline, timeline_peak, currency) }}
+  {% if timeline.points %}
+  <div class="table-wrap" style="margin-top:18px">
+    <table>
+      <thead><tr><th>Период</th><th class="num">Доходы</th><th class="num">Расходы</th><th class="num">Разница</th></tr></thead>
+      <tbody>
+        {% for point in timeline.points %}
+        <tr>
+          <td>{% if granularity == 'month' %}{{ point.period_start | rumonth }}{% elif granularity == 'year' %}{{ point.period_start.year }}{% else %}{{ point.period_start | rudate }}{% endif %}</td>
+          <td class="num">{{ point.income | money(currency) }}</td>
+          <td class="num">{{ point.expense | money(currency) }}</td>
+          <td class="num {{ 'pos' if point.net >= 0 else 'neg' }}">{{ point.net | money(currency) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Расходы по категориям</h2>
+  {{ breakdown_bars(expenses.items, currency) }}
+  {{ breakdown_table(expenses, currency, "Категория расходов") }}
+</div>
+
+<div class="card">
+  <h2>Доходы по источникам</h2>
+  {{ breakdown_bars(incomes.items, currency) }}
+  {{ breakdown_table(incomes, currency, "Категория доходов") }}
+</div>
+{% endblock %}

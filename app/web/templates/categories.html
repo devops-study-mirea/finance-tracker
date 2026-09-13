@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Категории — Финансы{% endblock %}
+
+{% macro category_table(items, title) %}
+<div class="card">
+  <h2>{{ title }}</h2>
+  {% if items %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Название</th><th></th></tr></thead>
+      <tbody>
+        {% for category in items %}
+        <tr>
+          <td>
+            <span class="with-dot" style="--c: var(--c{{ category.color_slot }})">
+              <span class="dot"></span>{{ category.name }}
+              {% if category.is_archived %}<span class="dim"> · в архиве</span>{% endif %}
+            </span>
+          </td>
+          <td class="num">
+            <form method="post" action="/categories/{{ category.id }}/delete"
+                  hx-post="/categories/{{ category.id }}/delete"
+                  hx-confirm="Удалить категорию «{{ category.name }}»? Операции по ней сохранятся как «Без категории».">
+              <button class="btn-link" type="submit" title="Удалить">✕</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="empty">Пока пусто</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Категории</h1>
+  <p>Категория определяет, в какой строке отчёта окажется операция</p>
+</div>
+
+<div class="card">
+  <h2>Новая категория</h2>
+  <form method="post" action="/categories" class="row">
+    <div class="field">
+      <label for="name">Название</label>
+      <input id="name" name="name" required maxlength="100" placeholder="Спортзал">
+    </div>
+    <div class="field field-sm">
+      <label for="kind">Тип</label>
+      <select id="kind" name="kind">
+        <option value="expense">Расход</option>
+        <option value="income">Доход</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="color_slot">Цвет</label>
+      <select id="color_slot" name="color_slot">
+        {% for light, dark, label in palette %}
+          <option value="{{ loop.index0 }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn" type="submit">Создать</button>
+  </form>
+  <div class="budget-note" style="margin-top:12px">
+    Цвета выбираются из фиксированного набора: восемь оттенков, различимых
+    между собой при дальтонизме и в тёмной теме. Произвольный HEX сломал бы это.
+  </div>
+</div>
+
+<div class="grid grid-2">
+  {{ category_table(expense_categories, "Расходы") }}
+  {{ category_table(income_categories, "Доходы") }}
+</div>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Счета — Финансы{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Счета</h1>
+  <p>Всего активных: {{ total_balance | money(currency) }}</p>
+</div>
+
+<div class="card">
+  <h2>Новый счёт</h2>
+  <form method="post" action="/accounts" class="row">
+    <div class="field">
+      <label for="name">Название</label>
+      <input id="name" name="name" required maxlength="100" placeholder="Основная карта">
+    </div>
+    <div class="field field-sm">
+      <label for="kind">Тип</label>
+      <select id="kind" name="kind">
+        {% for value, label in account_kind_labels.items() %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field field-sm">
+      <label for="currency">Валюта</label>
+      <input id="currency" name="currency" value="{{ currency }}" maxlength="3" required>
+    </div>
+    <div class="field field-sm">
+      <label for="initial_balance">Начальный остаток</label>
+      <input id="initial_balance" name="initial_balance" inputmode="decimal" value="0">
+    </div>
+    <button class="btn" type="submit">Создать</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Список счетов</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Название</th><th>Тип</th><th class="num">Начальный</th><th class="num">Текущий остаток</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for account in accounts %}
+        <tr>
+          <td>
+            {{ account.name }}
+            {% if account.is_archived %}<span class="dim"> · в архиве</span>{% endif %}
+          </td>
+          <td class="dim">{{ account_kind_labels[account.kind.value] }}</td>
+          <td class="num dim">{{ account.initial_balance | money(account.currency) }}</td>
+          <td class="num {{ 'neg' if balances.get(account.id, 0) < 0 }}">
+            {{ balances.get(account.id, 0) | money(account.currency) }}
+          </td>
+          <td class="num">
+            <div class="row" style="justify-content:flex-end; gap:4px">
+              <form method="post" action="/accounts/{{ account.id }}/archive"
+                    hx-post="/accounts/{{ account.id }}/archive">
+                <input type="hidden" name="archived" value="{{ 'false' if account.is_archived else 'true' }}">
+                <button class="btn-link" type="submit">{{ 'Вернуть' if account.is_archived else 'В архив' }}</button>
+              </form>
+              <form method="post" action="/accounts/{{ account.id }}/delete"
+                    hx-post="/accounts/{{ account.id }}/delete"
+                    hx-confirm="Удалить счёт «{{ account.name }}»?">
+                <button class="btn-link" type="submit" title="Удалить">✕</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="budget-note" style="margin-top:14px">
+    Счёт, по которому уже есть операции, удалить нельзя — только отправить в архив.
+    Удаление стёрло бы историю из отчётов, а архивный счёт просто пропадает
+    из выпадающих списков.
+  </div>
+</div>
+{% endblock %}

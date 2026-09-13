@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Регистрация — Финансы</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="auth">
+  <form class="auth-card" method="post" action="/register">
+    <h1>💰 Регистрация</h1>
+    {% if error %}<div class="notice notice-error">{{ error }}</div>{% endif %}
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="{{ email or '' }}" required autofocus autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Пароль</label>
+      <input id="password" type="password" name="password" required minlength="8" autocomplete="new-password">
+      <div class="budget-note">Минимум 8 символов</div>
+    </div>
+    <button class="btn" type="submit">Создать аккаунт</button>
+    <div class="auth-alt">Уже есть аккаунт? <a href="/login">Войти</a></div>
+  </form>
+</div>
+</body>
+</html>

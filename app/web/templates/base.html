@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Финансы{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💰</text></svg>">
+  <!-- HTMX перехватывает отправку форм удаления, чтобы показать подтверждение.
+       Если скрипт не загрузился, формы отправляются обычным способом —
+       интерфейс остаётся полностью рабочим без JavaScript. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/2.0.4/htmx.min.js" defer></script>
+</head>
+<body>
+{% if user %}
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="/" class="brand">💰 Финансы</a>
+    <nav class="nav">
+      <a href="/" {% if path == '/' %}class="active"{% endif %}>Обзор</a>
+      <a href="/transactions" {% if path.startswith('/transactions') %}class="active"{% endif %}>Операции</a>
+      <a href="/reports" {% if path.startswith('/reports') %}class="active"{% endif %}>Отчёты</a>
+      <a href="/budgets" {% if path.startswith('/budgets') %}class="active"{% endif %}>Бюджеты</a>
+      <a href="/accounts" {% if path.startswith('/accounts') %}class="active"{% endif %}>Счета</a>
+      <a href="/categories" {% if path.startswith('/categories') %}class="active"{% endif %}>Категории</a>
+    </nav>
+    <span class="user">{{ user.email }}</span>
+    <a href="/logout" class="user">Выйти</a>
+  </div>
+</header>
+{% endif %}
+
+<main>
+  {% if error %}<div class="notice notice-error">{{ error }}</div>{% endif %}
+  {% if ok %}<div class="notice notice-ok">{{ ok }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

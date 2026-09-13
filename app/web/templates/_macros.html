@@ -1,0 +1,99 @@
+{# Переиспользуемые фрагменты графиков.
+
+   Общее правило: цвет никогда не единственный носитель смысла. У каждого
+   столбика есть текстовая подпись, у каждого статуса — значок и слово.
+   Так отчёт читается и при дальтонизме, и на чёрно-белой печати. #}
+
+{# --- Разрез по категориям: горизонтальные столбики ------------------
+   Длина считается от МАКСИМАЛЬНОЙ категории, а не от суммы всех: иначе при
+   двадцати категориях все полоски вырождаются в точки и сравнивать нечего.
+   Доля от общей суммы показана отдельно процентом. #}
+{% macro breakdown_bars(items, currency) %}
+  {% if items %}
+    {% set peak = items | map(attribute='total') | max %}
+    <div class="bars">
+      {% for item in items %}
+        <div class="bar-row" style="--c: {% if item.color_slot is not none %}var(--c{{ item.color_slot }}){% else %}var(--c-none){% endif %}">
+          <div class="bar-name with-dot"><span class="dot"></span>{{ item.category_name }}</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: {{ (item.total * 100 / peak) | float | round(1) if peak > 0 else 0 }}%"></div>
+          </div>
+          <div class="bar-value">{{ item.total | money(currency) }}<span class="share">{{ item.share }}%</span></div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">За выбранный период операций нет</div>
+  {% endif %}
+{% endmacro %}
+
+
+{# --- Индикатор бюджета ---------------------------------------------
+   Статусные цвета (зелёный/жёлтый/оранжевый/красный) зарезервированы под
+   состояние и не используются как цвета категорий — иначе цвет перестаёт
+   что-либо значить. #}
+{% macro budget_status_class(usage) %}
+{%- if usage < 75 -%}st-good{%- elif usage < 100 -%}st-warning{%- elif usage < 120 -%}st-serious{%- else -%}st-critical{%- endif -%}
+{% endmacro %}
+
+{% macro budget_meter(item, currency) %}
+  <div class="budget">
+    <div class="budget-head">
+      <span class="with-dot" style="--c: var(--c{{ item.color_slot }})">
+        <span class="dot"></span>{{ item.category_name }}
+      </span>
+      <span class="num">{{ item.spent | money(currency) }} из {{ item.limit_amount | money(currency) }}</span>
+    </div>
+    <div class="budget-track">
+      <div class="budget-fill {{ budget_status_class(item.usage_pct) | trim }}"
+           style="width: {{ [item.usage_pct, 100] | min }}%"></div>
+    </div>
+    <div class="budget-note {% if item.is_over %}over{% endif %}">
+      {%- if item.is_over -%}
+        ⚠ Перерасход {{ (-item.remaining) | money(currency) }} · {{ item.usage_pct }}%
+      {%- elif item.usage_pct >= 75 -%}
+        ⚠ Близко к лимиту · осталось {{ item.remaining | money(currency) }} ({{ item.usage_pct }}%)
+      {%- else -%}
+        ✓ Осталось {{ item.remaining | money(currency) }} ({{ item.usage_pct }}%)
+      {%- endif -%}
+    </div>
+  </div>
+{% endmacro %}
+
+
+{# --- Динамика доходов и расходов -----------------------------------
+   Две серии — значит обязательна легенда. Обе серии на ОДНОЙ шкале:
+   две оси Y с разными масштабами позволяют «доказать» графиком любую
+   связь между рядами и потому не используются никогда.
+   Под графиком таблица тех же чисел — она же делает данные доступными
+   для скринридера. #}
+{% macro timeline_chart(timeline, peak, currency) %}
+  {% if timeline.points %}
+    <div class="legend">
+      <span style="--c: var(--income)"><span class="swatch"></span>Доходы</span>
+      <span style="--c: var(--expense)"><span class="swatch"></span>Расходы</span>
+    </div>
+    <div class="tl-scale">Шкала: от 0 до {{ peak | money(currency) }}. Точные значения — в таблице ниже.</div>
+    <div class="timeline">
+      {% for point in timeline.points %}
+        <div class="tl-group">
+          <div class="tl-bars">
+            <div class="tl-bar tl-income"
+                 style="height: {{ (point.income * 100 / peak) | float | round(1) if peak > 0 else 0 }}%"
+                 title="Доходы: {{ point.income | money(currency) }}"></div>
+            <div class="tl-bar tl-expense"
+                 style="height: {{ (point.expense * 100 / peak) | float | round(1) if peak > 0 else 0 }}%"
+                 title="Расходы: {{ point.expense | money(currency) }}"></div>
+          </div>
+          <div class="tl-label">
+            {%- if timeline.granularity == 'month' -%}{{ point.period_start | shortmonth }}
+            {%- elif timeline.granularity == 'year' -%}{{ point.period_start.year }}
+            {%- else -%}{{ point.period_start | rudate }}{%- endif -%}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty">За выбранный период операций нет</div>
+  {% endif %}
+{% endmacro %}

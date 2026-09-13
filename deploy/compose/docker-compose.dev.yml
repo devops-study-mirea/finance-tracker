@@ -1,0 +1,28 @@
+# Только база для локальной разработки.
+# Само приложение на этом этапе запускается через `make run` из venv —
+# так быстрее итерации. Полная контейнеризация приложения будет на этапе 3.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: finance-postgres
+    environment:
+      POSTGRES_USER: finance
+      POSTGRES_PASSWORD: finance
+      POSTGRES_DB: finance
+    ports:
+      # 5432 на хосте занят системным PostgreSQL, поэтому наружу отдаём 5433.
+      # Внутри сети Compose порт остаётся стандартным.
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-test-db.sql:/docker-entrypoint-initdb.d/10-init-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finance -d finance"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход — Финансы</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="auth">
+  <form class="auth-card" method="post" action="/login">
+    <h1>💰 Вход</h1>
+    {% if error %}<div class="notice notice-error">{{ error }}</div>{% endif %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email" value="{{ email or '' }}" required autofocus autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="password">Пароль</label>
+      <input id="password" type="password" name="password" required autocomplete="current-password">
+    </div>
+    <button class="btn" type="submit">Войти</button>
+    <div class="auth-alt">Нет аккаунта? <a href="/register">Зарегистрироваться</a></div>
+  </form>
+</div>
+</body>
+</html>

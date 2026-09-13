@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Секреты и локальная конфигурация
+.env
+.env.local
+*.pem
+
+# Данные
+*.sqlite3
+pgdata/
+
+# Редакторы
+.idea/
+.vscode/

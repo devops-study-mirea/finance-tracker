@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% from "_macros.html" import budget_meter %}
+{% block title %}Бюджеты — Финансы{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Бюджеты</h1>
+  <p>{{ status.month | rumonth }} · израсходовано {{ status.total_spent | money(currency) }} из {{ status.total_limit | money(currency) }}</p>
+</div>
+
+<div class="card">
+  <h2>Новый лимит</h2>
+  {% if available_categories %}
+  <form method="post" action="/budgets" class="row">
+    <div class="field">
+      <label for="category_id">Категория расходов</label>
+      <select id="category_id" name="category_id" required>
+        {% for category in available_categories %}
+          <option value="{{ category.id }}">{{ category.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field field-sm">
+      <label for="limit_amount">Лимит в месяц</label>
+      <input id="limit_amount" name="limit_amount" inputmode="decimal" required placeholder="15000">
+    </div>
+    <button class="btn" type="submit">Установить</button>
+  </form>
+  {% else %}
+    <div class="empty">Для всех категорий расходов лимиты уже заданы</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Текущий месяц</h2>
+  {% if status.items %}
+    {% for item in status.items %}
+      {{ budget_meter(item, currency) }}
+    {% endfor %}
+    <div class="table-wrap" style="margin-top:20px">
+      <table>
+        <thead><tr><th>Категория</th><th class="num">Лимит</th><th class="num">Потрачено</th><th class="num">Остаток</th><th></th></tr></thead>
+        <tbody>
+          {% for budget in budgets %}
+          <tr>
+            <td>{{ budget.category.name }}</td>
+            <td class="num">{{ budget.limit_amount | money(currency) }}</td>
+            {% set matched = status.items | selectattr('category_id', 'equalto', budget.category_id) | first %}
+            <td class="num">{{ matched.spent | money(currency) if matched else 0 | money(currency) }}</td>
+            <td class="num {{ 'neg' if matched and matched.remaining < 0 }}">
+              {{ matched.remaining | money(currency) if matched else budget.limit_amount | money(currency) }}
+            </td>
+            <td class="num">
+              <form method="post" action="/budgets/{{ budget.id }}/delete"
+                    hx-post="/budgets/{{ budget.id }}/delete"
+                    hx-confirm="Снять лимит с категории «{{ budget.category.name }}»?">
+                <button class="btn-link" type="submit" title="Снять лимит">✕</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty">Лимиты не заданы. Задай хотя бы один — и на обзоре появится контроль расходов.</div>
+  {% endif %}
+</div>
+{% endblock %}

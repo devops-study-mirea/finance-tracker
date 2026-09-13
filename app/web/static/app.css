@@ -1,0 +1,232 @@
+/* ============================================================
+   Токены. Все цвета определены здесь и только здесь.
+   Категориальные слоты --c0..--c7 — проверенная палитра из
+   app/palette.py: соседние пары различимы при дальтонизме.
+   У тёмной темы СВОИ шаги тех же оттенков, а не автоматическая
+   инверсия: цвет, подобранный под белый фон, на тёмном теряет
+   контраст, и график становится нечитаемым.
+   ============================================================ */
+:root {
+  color-scheme: light;
+  --surface: #fcfcfb;
+  --plane: #f9f9f7;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.1);
+  --hover: rgba(11, 11, 11, 0.04);
+
+  --c0: #2a78d6; --c1: #eb6834; --c2: #1baf7a; --c3: #eda100;
+  --c4: #e87ba4; --c5: #008300; --c6: #4a3aa7; --c7: #e34948;
+  --c-none: #898781;
+
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --income: var(--c0);
+  --expense: var(--c1);
+  --positive-text: #006300;
+  --negative-text: #d03b3b;
+
+  --radius: 10px;
+  --gap: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface: #1a1a19;
+    --plane: #0d0d0d;
+    --ink: #ffffff;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --border: rgba(255, 255, 255, 0.1);
+    --hover: rgba(255, 255, 255, 0.06);
+
+    --c0: #3987e5; --c1: #d95926; --c2: #199e70; --c3: #c98500;
+    --c4: #d55181; --c5: #008300; --c6: #9085e9; --c7: #e66767;
+    --positive-text: #0ca30c;
+  }
+}
+
+/* ============================================================ Базовое */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--plane);
+  color: var(--ink);
+}
+
+a { color: var(--c0); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 14px; font-weight: 600; }
+
+/* ============================================================ Каркас */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-inner {
+  max-width: 1080px; margin: 0 auto; padding: 0 20px;
+  display: flex; align-items: center; gap: 22px; min-height: 56px;
+  flex-wrap: wrap;
+}
+.brand { font-weight: 650; color: var(--ink); font-size: 15px; }
+.brand:hover { text-decoration: none; }
+.nav { display: flex; gap: 18px; flex: 1; flex-wrap: wrap; }
+.nav a { color: var(--ink-2); font-size: 14px; padding: 4px 0; }
+.nav a.active { color: var(--ink); font-weight: 600; box-shadow: inset 0 -2px 0 var(--c0); }
+.topbar .user { color: var(--muted); font-size: 13px; }
+
+main { max-width: 1080px; margin: 0 auto; padding: 24px 20px 64px; }
+.page-head { margin-bottom: 20px; }
+.page-head p { margin: 0; color: var(--ink-2); font-size: 14px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: var(--gap);
+}
+.grid { display: grid; gap: var(--gap); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+.spread { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+
+/* ============================================================ Плитки
+   Цифра — главный объект на плитке, поэтому она крупная и первичным
+   цветом; подпись — вторичным. Обратный порядок (крупная подпись,
+   мелкая цифра) заставляет искать значение глазами. */
+.tiles { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.tile .label { font-size: 12px; color: var(--ink-2); margin-bottom: 6px; }
+.tile .value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }
+.tile .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.pos { color: var(--positive-text); }
+.neg { color: var(--negative-text); }
+
+/* ============================================================ Таблицы */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th {
+  text-align: left; font-weight: 500; color: var(--ink-2); font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.03em;
+  padding: 0 10px 8px; border-bottom: 1px solid var(--grid); white-space: nowrap;
+}
+td { padding: 9px 10px; border-bottom: 1px solid var(--grid); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--hover); }
+.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.dim { color: var(--muted); }
+
+/* Цветная точка рядом с названием: цвет НИКОГДА не единственный носитель
+   смысла — рядом всегда есть текстовая подпись. */
+.dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--c, var(--c-none)); margin-right: 7px; flex: none;
+}
+.with-dot { display: flex; align-items: center; }
+
+/* ============================================================ Формы */
+label { display: block; font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+input, select, textarea {
+  font: inherit; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--axis); border-radius: 8px; padding: 8px 10px; width: 100%;
+}
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--c0); outline-offset: -1px; }
+.field { flex: 1 1 150px; min-width: 130px; }
+.field-sm { flex: 0 1 120px; }
+
+.btn {
+  font: inherit; font-weight: 500; cursor: pointer;
+  background: var(--c0); color: #fff; border: 1px solid transparent;
+  border-radius: 8px; padding: 8px 16px; white-space: nowrap;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn-ghost { background: transparent; color: var(--ink-2); border-color: var(--axis); }
+.btn-link {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font: inherit; font-size: 13px; padding: 4px 6px;
+}
+.btn-link:hover { color: var(--negative-text); }
+
+.notice { border-radius: 8px; padding: 10px 14px; font-size: 14px; margin-bottom: var(--gap); }
+.notice-error { background: rgba(208, 59, 59, 0.1); color: var(--negative-text); }
+.notice-ok { background: rgba(12, 163, 12, 0.1); color: var(--positive-text); }
+
+.empty { color: var(--muted); font-size: 14px; padding: 22px 0; text-align: center; }
+
+/* ============================================================ Графики
+   Столбики тонкие, скруглены только на конце данных (4px), прижаты
+   к базовой линии. Сетка и оси нарочито блёклые — они опора, а не
+   содержание. */
+.bars { display: grid; gap: 10px; }
+.bar-row { display: grid; grid-template-columns: minmax(100px, 1.3fr) minmax(50px, 2.2fr) minmax(105px, auto); gap: 12px; align-items: center; }
+/* Название переносится, а не обрезается: «Жильё и комму…» не даёт понять,
+   на что ушли деньги, а именно это и есть смысл отчёта. */
+.bar-name { font-size: 13px; line-height: 1.3; overflow-wrap: anywhere; }
+.bar-name.with-dot { display: block; }
+.bar-track { background: var(--grid); border-radius: 4px; height: 12px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--c, var(--c-none)); border-radius: 0 4px 4px 0; min-width: 2px; }
+.bar-value { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.bar-value .share { color: var(--muted); margin-left: 6px; font-size: 12px; }
+
+/* Динамика: сгруппированные столбики по периодам */
+.timeline { display: flex; align-items: flex-end; gap: 10px; overflow-x: auto; padding-top: 10px; }
+.tl-group { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 54px; flex: 1; }
+.tl-bars {
+  display: flex; align-items: flex-end; gap: 2px; /* 2px зазор фоном между заливками */
+  height: 150px; border-bottom: 1px solid var(--axis); padding-bottom: 0;
+}
+.tl-bar { width: 16px; border-radius: 4px 4px 0 0; min-height: 2px; align-self: flex-end; }
+.tl-income { background: var(--income); }
+.tl-expense { background: var(--expense); }
+.tl-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+.tl-scale { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); margin-bottom: 4px; flex-wrap: wrap; }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+
+/* Индикатор бюджета: статусные цвета ВСЕГДА идут вместе с текстовой
+   подписью и процентом — по одному лишь цвету состояние не читается. */
+.budget { margin-bottom: 16px; }
+.budget:last-child { margin-bottom: 0; }
+.budget-head { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; margin-bottom: 6px; }
+.budget-track { background: var(--grid); border-radius: 4px; height: 10px; overflow: hidden; }
+.budget-fill { height: 100%; border-radius: 0 4px 4px 0; min-width: 2px; }
+.st-good { background: var(--good); }
+.st-warning { background: var(--warning); }
+.st-serious { background: var(--serious); }
+.st-critical { background: var(--critical); }
+.budget-note { font-size: 12px; margin-top: 4px; color: var(--muted); }
+.budget-note.over { color: var(--negative-text); }
+
+/* ============================================================ Вход */
+.auth { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.auth-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 32px; width: 100%; max-width: 380px;
+}
+.auth-card h1 { margin-bottom: 20px; }
+.auth-card .field { flex: none; width: 100%; margin-bottom: 14px; }
+.auth-card .btn { width: 100%; margin-top: 6px; }
+.auth-alt { text-align: center; margin-top: 18px; font-size: 14px; color: var(--ink-2); }
+
+@media (max-width: 620px) {
+  .bar-row { grid-template-columns: 1fr; gap: 4px; }
+  .bar-value { text-align: left; }
+}
