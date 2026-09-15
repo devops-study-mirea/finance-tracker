@@ -34,7 +34,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://finance:${POSTGRES_PASSWORD}@postgres:5432/finance
     ports:
-      - 8080:8000
+      - "135.106.199.82:8080:8000"
     depends_on:
       migrate:
         condition: service_completed_successfully
